@@ -5,14 +5,22 @@ import (
 	"net/http"
 	"os"
 
+	// "database/sql"
+	"github.com/akshithere/rssaggregator/internal/db"
+	"github.com/akshithere/rssaggregator/pkg/config"
+	"github.com/akshithere/rssaggregator/pkg/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
-	port := os.Getenv("PORT")
+	godotenv.Load() // Load environment variables from .env file
+	port := os.Getenv("PORT") // Get the PORT from environment variables
+
+	db.ConnectToDB()
+	config.InitConfig()
+	
 	if port == ""{
 		log.Fatal("Port is not provided")
 	}
@@ -33,8 +41,9 @@ func main() {
 		}))
 
 		v1Router := chi.NewRouter()
-		v1Router.Get("/health", handlerReadiness)
-		v1Router.Get("/err", handlerError)
+		v1Router.Get("/health", handlers.HandlerReadiness)
+		v1Router.Get("/err", handlers.HandlerError)
+		v1Router.Post("/createUserTable", handlers.HandlerCreateUserTable)
 
 		router.Mount("/v1", v1Router)
 
@@ -44,4 +53,5 @@ func main() {
 			log.Fatal("Somethings up", err)
 		}
 	http.ListenAndServe(port,nil)
+		defer config.ApiConfig.Database.Close()
 }
