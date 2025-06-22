@@ -26,7 +26,7 @@ func main() {
 	}
 		// creates a router
 		router:= chi.NewRouter()
-		srv := &http.Server{
+		var srv *http.Server = &http.Server{
 			Handler: router,
 			Addr: ":"+port,
 		}
@@ -41,11 +41,14 @@ func main() {
 		}))
 
 		v1Router := chi.NewRouter()
+		testRouter := chi.NewRouter()
 		v1Router.Get("/health", handlers.HandlerReadiness)
 		v1Router.Get("/err", handlers.HandlerError)
 		v1Router.Post("/createUserTable", handlers.HandlerCreateUserTable)
+		v1Router.Post("/insertUser", handlers.HandlerInsertUser)
 
 		router.Mount("/v1", v1Router)
+		router.Mount("/test", testRouter)
 
 		log.Printf("Server is running healthily")
 		err := srv.ListenAndServe()
